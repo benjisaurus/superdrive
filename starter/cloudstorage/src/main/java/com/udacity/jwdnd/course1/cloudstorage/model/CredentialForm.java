@@ -3,10 +3,10 @@ package com.udacity.jwdnd.course1.cloudstorage.model;
 public class CredentialForm {
 
     private String credentialId;
-    private String credentialUrl;
-    private String credentialUserName;
-    private String credentialKey;
-    private String credentialPassword;
+    private String url;
+    private String userName;
+    private String key;
+    private String password;
     private String userId;
 
     public String getCredentialId() {
@@ -17,36 +17,36 @@ public class CredentialForm {
         this.credentialId = credentialId;
     }
 
-    public String getCredentialUrl() {
-        return credentialUrl;
+    public String getUrl() {
+        return url;
     }
 
-    public void setCredentialUrl(String url) {
-        this.credentialUrl = url;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    public String getCredentialUserName() {
-        return credentialUserName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setCredentialUserName(String userName) {
-        this.credentialUserName = userName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getCredentialKey() {
-        return credentialKey;
+    public String getKey() {
+        return key;
     }
 
-    public void setCredentialKey(String key) {
-        this.credentialKey = key;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public String getCredentialPassword() {
-        return credentialPassword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setCredentialPassword(String password) {
-        this.credentialPassword = password;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getUserId() {
@@ -56,4 +56,5 @@ public class CredentialForm {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
 }

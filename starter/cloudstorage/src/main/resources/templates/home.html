@@ -136,12 +136,12 @@
                                 <tbody>
                                 <tr th:each="credential : ${credentials}">
                                     <td>
-                                        <button type="button" class="btn btn-success" th:onclick="javascript: showNoteModal([[${credential.credentialId}]],[[${credential.credentialUrl}]],[[${credential.credentialUserName}]],[[${credential.credentialPassword}]])">Edit</button>
+                                        <button type="button" class="btn btn-success" th:onclick="javascript: showCredentialModal([[${credential.credentialId}]],[[${credential.url}]],[[${credential.userName}]],[[${credential.password}]])">Edit</button>
                                         <a class="btn btn-danger" th:href="@{/credential/delete/{id}(id=${credential.credentialId})}">Delete</a>
                                     </td>
-                                    <th scope="row" th:text="${credential.credentialUrl}">Example Credential URL</th>
-                                    <td th:text="${credential.credentialUserName}">Example Credential Username</td>
-                                    <td th:text="${credential.credentialPassword}">Example Credential Password</td>
+                                    <th scope="row" th:text="${credential.url}">Example Credential URL</th>
+                                    <td th:text="${credential.userName}">Example Credential Username</td>
+                                    <td th:text="${credential.password}">Example Credential Password</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -161,15 +161,15 @@
                                             <input type="hidden" name="credentialId" id="credential-id">
                                             <div class="form-group">
                                                 <label for="note-title" class="col-form-label">URL</label>
-                                                <input type="text" name= "credentialUrl" class="form-control" id="credential-url" maxlength="100" required>
+                                                <input type="text" name= "url" class="form-control" id="credential-url" maxlength="100" required>
                                             </div>
                                             <div class="form-group">
                                                 <label for="note-title" class="col-form-label">Username</label>
-                                                <input type="text" name= "credentialUserName" class="form-control" id="credential-username" maxlength="30" required>
+                                                <input type="text" name= "userName" class="form-control" id="credential-username" maxlength="30" required>
                                             </div>
                                             <div class="form-group">
                                                 <label for="note-title" class="col-form-label">Password</label>
-                                                <input type="text" name= "credentialPassword" class="form-control" id="credential-password" maxlength="30" required>
+                                                <input type="text" name= "password" class="form-control" id="credential-password" maxlength="30" required>
                                             </div>
                                             <button id="credentialSubmit" type="submit" class="d-none"></button>
                                         </form>
@@ -205,8 +205,19 @@
                 $('#credential-id').val(credentialId ? credentialId : '');
                 $('#credential-url').val(url ? url : '');
                 $('#credential-username').val(username ? username : '');
-                $('#credential-password').val(password ? password : '');
+                $('#credential-password').val(password ? decodePass(credentialId) : '');
                 $('#credentialModal').modal('show');
+            }
+
+            async function decodePass(credentialId) {
+                let response = await fetch(`http://localhost:8080/unencrypt/${credentialId}`);
+                if(response.ok) {
+                    let data = await response.data.json();
+                    let resultData = JSON.parse(JSON.stringify(data));
+                    return resultData.decodedPass;
+                } else {
+                    alert("http error: " + response.status);
+                }
             }
         </script>
     </body>

@@ -1,8 +1,10 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
+import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
 import com.udacity.jwdnd.course1.cloudstorage.model.User;
 import com.udacity.jwdnd.course1.cloudstorage.service.CredentialService;
+import com.udacity.jwdnd.course1.cloudstorage.service.EncryptionService;
 import com.udacity.jwdnd.course1.cloudstorage.service.NoteService;
 import com.udacity.jwdnd.course1.cloudstorage.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -20,11 +22,13 @@ public class HomeController {
     private final UserService userService;
     private final NoteService noteService;
     private final CredentialService credentialService;
+    private final EncryptionService encryptionService;
 
-    public HomeController(UserService userService, NoteService noteService, CredentialService credentialService) {
+    public HomeController(UserService userService, NoteService noteService, CredentialService credentialService, EncryptionService encryptionService) {
         this.userService = userService;
         this.noteService = noteService;
         this.credentialService = credentialService;
+        this.encryptionService = encryptionService;
     }
 
 
@@ -81,10 +85,22 @@ public class HomeController {
         } else {
             this.credentialService.updateCredential(credentialForm);
         }
-        credentialForm.setCredentialUserName("");
-        credentialForm.setCredentialPassword("");
-        credentialForm.setCredentialUrl("");
+        credentialForm.setUserName("");
+        credentialForm.setPassword("");
+        credentialForm.setUrl("");
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
+        return "home";
+    }
+
+    @GetMapping("/unencrypt/{credentialId}")
+    public String unencryptPassword(Model model, @PathVariable(value = "credentialId") Integer credentialId, Authentication auth) {
+        User user = userService.getUser(auth.getName());
+        String decodedPass = "";
+        Credential credential = credentialService.getCredential(credentialId);
+        if(credential.getUserId() == user.getUserId()) {
+            decodedPass = this.encryptionService.decryptValue(credential.getPassword(), credential.getKey());
+            model.addAttribute("decodedPass", decodedPass);
+        }
         return "home";
     }
 }
