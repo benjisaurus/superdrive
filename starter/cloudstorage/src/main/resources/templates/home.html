@@ -208,17 +208,6 @@
                 $('#credential-password').val(password ? password : '');
                 $('#credentialModal').modal('show');
             }
-
-            async function decodePass(credentialId) {
-                let response = await fetch(`http://localhost:8080/unencrypt/${credentialId}`);
-                if(response.ok) {
-                    let data = await response.data.json();
-                    let resultData = JSON.parse(JSON.stringify(data));
-                    return resultData.decodedPass;
-                } else {
-                    alert("http error: " + response.status);
-                }
-            }
         </script>
     </body>
 </html>

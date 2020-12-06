@@ -60,7 +60,7 @@ public class HomeController {
         User user = userService.getUser(auth.getName());
         this.credentialService.deleteCredential(credentialId);
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
-        return "home";
+        return "redirect:/home";
     }
 
     @PostMapping("/note")
@@ -75,7 +75,7 @@ public class HomeController {
         noteForm.setNoteDescription("");
         noteForm.setNoteTitle("");
         model.addAttribute("notes", this.noteService.getNotes(user.getUserId()));
-        return "home";
+        return "redirect:/home";
     }
 
     @PostMapping("/credential")
@@ -91,19 +91,6 @@ public class HomeController {
         credentialForm.setPassword("");
         credentialForm.setUrl("");
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
-        return "home";
-    }
-
-    @RequestMapping("/unencrypt/{credentialId}")
-    public String unencryptPassword(Model model, @PathVariable(value = "credentialId") Integer credentialId, Authentication auth) {
-        User user = userService.getUser(auth.getName());
-        String decodedPass = "";
-        Credential credential = credentialService.getCredential(credentialId);
-        if(credential.getUserId() == user.getUserId()) {
-            decodedPass = this.encryptionService.decryptValue(credential.getPassword(), credential.getKey());
-            model.addAttribute("decodedPass", decodedPass);
-        }
-        //return "{decodedPass: '" + decodedPass + "'}";
-        return "home";
+        return "redirect:/home";
     }
 }

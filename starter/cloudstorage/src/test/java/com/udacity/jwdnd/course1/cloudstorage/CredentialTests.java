@@ -33,7 +33,7 @@ public class CredentialTests {
 
     @AfterAll
     public static void afterAll() {
-        //driver.quit();
+        driver.quit();
     }
 
     @Test
