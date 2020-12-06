@@ -1,5 +1,6 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
 import com.udacity.jwdnd.course1.cloudstorage.model.User;
@@ -11,10 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
 import org.springframework.security.core.Authentication;
 import com.udacity.jwdnd.course1.cloudstorage.model.NoteForm;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class HomeController {
@@ -33,10 +34,11 @@ public class HomeController {
 
 
     @GetMapping("/home")
-    public String homeView(Model model, Authentication auth) {
+    public String homeView(Model model, Authentication auth, EncryptionService encryptionService) {
         User user = userService.getUser(auth.getName());
         model.addAttribute("notes", this.noteService.getNotes(user.getUserId()));
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
+        model.addAttribute("encryptionService", encryptionService);
         return "home";
     }
 
@@ -92,7 +94,7 @@ public class HomeController {
         return "home";
     }
 
-    @GetMapping("/unencrypt/{credentialId}")
+    @RequestMapping("/unencrypt/{credentialId}")
     public String unencryptPassword(Model model, @PathVariable(value = "credentialId") Integer credentialId, Authentication auth) {
         User user = userService.getUser(auth.getName());
         String decodedPass = "";
@@ -101,6 +103,7 @@ public class HomeController {
             decodedPass = this.encryptionService.decryptValue(credential.getPassword(), credential.getKey());
             model.addAttribute("decodedPass", decodedPass);
         }
+        //return "{decodedPass: '" + decodedPass + "'}";
         return "home";
     }
 }
