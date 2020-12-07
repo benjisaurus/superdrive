@@ -1,13 +1,10 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
+import com.udacity.jwdnd.course1.cloudstorage.model.FileForm;
 import com.udacity.jwdnd.course1.cloudstorage.model.User;
-import com.udacity.jwdnd.course1.cloudstorage.service.CredentialService;
-import com.udacity.jwdnd.course1.cloudstorage.service.EncryptionService;
-import com.udacity.jwdnd.course1.cloudstorage.service.NoteService;
-import com.udacity.jwdnd.course1.cloudstorage.service.UserService;
+import com.udacity.jwdnd.course1.cloudstorage.service.*;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.ui.Model;
 import org.springframework.security.core.Authentication;
 import com.udacity.jwdnd.course1.cloudstorage.model.NoteForm;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Controller
 public class HomeController {
@@ -24,12 +24,14 @@ public class HomeController {
     private final NoteService noteService;
     private final CredentialService credentialService;
     private final EncryptionService encryptionService;
+    private final FileService fileService;
 
-    public HomeController(UserService userService, NoteService noteService, CredentialService credentialService, EncryptionService encryptionService) {
+    public HomeController(UserService userService, NoteService noteService, CredentialService credentialService, EncryptionService encryptionService, FileService fileService) {
         this.userService = userService;
         this.noteService = noteService;
         this.credentialService = credentialService;
         this.encryptionService = encryptionService;
+        this.fileService = fileService;
     }
 
 
@@ -39,6 +41,7 @@ public class HomeController {
         model.addAttribute("notes", this.noteService.getNotes(user.getUserId()));
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
         model.addAttribute("encryptionService", encryptionService);
+        model.addAttribute("files", this.fileService.getFiles(user.getUserId()));
         return "home";
     }
 
@@ -52,7 +55,20 @@ public class HomeController {
         User user = userService.getUser(auth.getName());
         this.noteService.deleteNote(noteId);
         model.addAttribute("notes", this.noteService.getNotes(user.getUserId()));
-        return "home";
+        //return "home";
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
+    }
+
+    @GetMapping("/file/delete/{fileId}")
+    public String deleteFile(Model model, @PathVariable(value = "fileId") Integer fileId, Authentication auth) {
+        User user = userService.getUser(auth.getName());
+        this.fileService.deleteFile(fileId);
+        model.addAttribute("files", this.fileService.getFiles(user.getUserId()));
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
     }
 
     @GetMapping("/credential/delete/{credentialId}")
@@ -60,7 +76,10 @@ public class HomeController {
         User user = userService.getUser(auth.getName());
         this.credentialService.deleteCredential(credentialId);
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
-        return "redirect:/home";
+        //return "redirect:/home";
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
     }
 
     @PostMapping("/note")
@@ -75,7 +94,31 @@ public class HomeController {
         noteForm.setNoteDescription("");
         noteForm.setNoteTitle("");
         model.addAttribute("notes", this.noteService.getNotes(user.getUserId()));
-        return "redirect:/home";
+        //return "redirect:/home";
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
+    }
+
+    @PostMapping("/file")
+    public String postFile(FileForm fileForm, Model model, Authentication auth, @RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
+        User user = userService.getUser(auth.getName());
+        fileForm.setUserId(user.getUserId().toString());
+        fileForm.setFileData(fileUpload.getBytes());
+        fileForm.setFileSize(Long.toString(fileUpload.getSize()));
+        fileForm.setFileName(fileUpload.getName());
+        fileForm.setContentType(fileUpload.getContentType());
+        if(fileForm.getFileId() == "") {
+            this.fileService.addFile(fileForm);
+        } else {
+            this.fileService.updateFile(fileForm);
+        }
+        fileForm.setContentType("");
+        fileForm.setFileName("");
+        fileForm.setFileSize("");
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
     }
 
     @PostMapping("/credential")
@@ -91,6 +134,9 @@ public class HomeController {
         credentialForm.setPassword("");
         credentialForm.setUrl("");
         model.addAttribute("credentials", this.credentialService.getCredentials(user.getUserId()));
-        return "redirect:/home";
+        //return "redirect:/home";
+        model.addAttribute("success", "true");
+        model.addAttribute("link", "/home");
+        return "result";
     }
 }
