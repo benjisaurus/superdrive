@@ -1,9 +1,9 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
-import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
-import com.udacity.jwdnd.course1.cloudstorage.model.FileForm;
-import com.udacity.jwdnd.course1.cloudstorage.model.User;
+import com.udacity.jwdnd.course1.cloudstorage.model.*;
 import com.udacity.jwdnd.course1.cloudstorage.service.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.ui.Model;
 import org.springframework.security.core.Authentication;
-import com.udacity.jwdnd.course1.cloudstorage.model.NoteForm;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Controller
 public class HomeController {
@@ -71,6 +71,14 @@ public class HomeController {
         return "result";
     }
 
+    @GetMapping("/file/{fileId}")
+    public ResponseEntity getFile(Model model, @PathVariable(value = "fileId") Integer fileId, Authentication auth) {
+        File file = this.fileService.getFile(fileId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
+                .body(file);
+    }
+
     @GetMapping("/credential/delete/{credentialId}")
     public String deleteCredential(Model model, @PathVariable(value = "credentialId") Integer credentialId, Authentication auth) {
         User user = userService.getUser(auth.getName());
@@ -103,16 +111,23 @@ public class HomeController {
     @PostMapping("/file")
     public String postFile(FileForm fileForm, Model model, Authentication auth, @RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
         User user = userService.getUser(auth.getName());
+        ArrayList<File> userFiles = fileService.getFiles(user.getUserId());
+        for(File file : userFiles) {
+            String newFileName = fileUpload.getOriginalFilename();
+            String oldFileName = file.getFileName();
+            if(oldFileName.equals(newFileName)) {
+                model.addAttribute("error", true);
+                model.addAttribute("link", "/home");
+                model.addAttribute("message", "That file already exists");
+                return "result";
+            }
+        }
         fileForm.setUserId(user.getUserId().toString());
         fileForm.setFileData(fileUpload.getBytes());
         fileForm.setFileSize(Long.toString(fileUpload.getSize()));
-        fileForm.setFileName(fileUpload.getName());
+        fileForm.setFileName(fileUpload.getOriginalFilename());
         fileForm.setContentType(fileUpload.getContentType());
-        if(fileForm.getFileId() == "") {
             this.fileService.addFile(fileForm);
-        } else {
-            this.fileService.updateFile(fileForm);
-        }
         fileForm.setContentType("");
         fileForm.setFileName("");
         fileForm.setFileSize("");

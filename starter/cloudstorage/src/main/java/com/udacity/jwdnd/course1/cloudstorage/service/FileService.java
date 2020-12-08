@@ -19,6 +19,8 @@ public class FileService {
         return this.fileMapper.getUserFiles(userId);
     }
 
+    public File getFile(Integer fileId) { return this.fileMapper.getFile(fileId); }
+
     public void addFile(FileForm fileForm) {
         File file = new File();
         file.setUserId(Integer.valueOf(fileForm.getUserId()));
